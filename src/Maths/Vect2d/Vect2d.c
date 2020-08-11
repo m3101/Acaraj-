@@ -1,3 +1,12 @@
+/*
+    Acarajé - A minimalist swordfighting game
+    Copyright (C) 2020 Amélia O. F. da S.
+    Reachable at a.mellifluous.one@gmail.com
+    or www.github.com/m3101
+
+    Full copyright notice in /src/main.c
+*/
+
 #include "Vect2d.h"
 #include <math.h>
 /*Returns the dot product between two vectors*/

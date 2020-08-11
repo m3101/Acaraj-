@@ -4,3 +4,5 @@
 build
 #temporary build files
 tmp
+#libraries
+lib
