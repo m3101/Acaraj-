@@ -20,6 +20,8 @@
 
 #include "states.h"
 #include "statelist.h"
+#include "Audio/audiolist.h"
+#include "../lib/Simple-SDL2-Audio/src/audio.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
@@ -28,6 +30,7 @@ int main()
 {
     /*Initializing everything*/
     if(SDL_Init(SDL_INIT_EVERYTHING)<0)return -1;
+    initAudio();
     SDL_Window* mwindow = SDL_CreateWindow("Acarajé V0.0.0-prealpha",0,0,640,480,SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer;
     ac_state *cur_state=&LoadState,*next_state=NULL;
@@ -81,6 +84,7 @@ int main()
         if(tend-tstart<frame_time)
             SDL_Delay(frame_time-(tend-tstart));
     }
+    freeAudios();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(mwindow);
     SDL_Quit();

@@ -43,8 +43,8 @@ void *ll_pop(ll** list)
 void ll_free(ll** list)
 {
     if(!list||!*list)return;
-    if((*list)->next)ll_free(&(*list)->next);
-    free((*list)->self);
+    if((*list)->next!=NULL)ll_free(&(*list)->next);
+    if((*list)->self!=NULL)free((*list)->self);
     free(*list);
     *list=NULL;
 }
