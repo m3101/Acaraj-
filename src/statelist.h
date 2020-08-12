@@ -12,4 +12,5 @@
 #include "states.h"
 ac_state TestState;
 ac_state LoadState;
+ac_state DesignerState;
 #endif

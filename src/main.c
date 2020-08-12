@@ -33,7 +33,7 @@ int main()
     initAudio();
     SDL_Window* mwindow = SDL_CreateWindow("Acarajé V0.0.0-prealpha",0,0,640,480,SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer;
-    ac_state *cur_state=&LoadState,*next_state=NULL;
+    ac_state *cur_state=&DesignerState,*next_state=NULL;
     if(mwindow == NULL)
     {
         SDL_Quit();
@@ -59,6 +59,7 @@ int main()
     while(ac_flags&01)
     {
         tstart=SDL_GetTicks();
+        SDL_SetRenderDrawColor(renderer, 0,0,0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
         /*Managing state changes*/
         if(next_state!=NULL)
@@ -85,6 +86,7 @@ int main()
             SDL_Delay(frame_time-(tend-tstart));
     }
     freeAudios();
+    endAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(mwindow);
     SDL_Quit();

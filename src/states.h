@@ -16,5 +16,6 @@ typedef struct ac_state{
     void (*event)(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt);
     void (*frame)(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags);
     void (*destroy)();
+    unsigned char id;
 }ac_state;
 #endif

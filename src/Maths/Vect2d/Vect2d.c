@@ -31,6 +31,12 @@ void add2d(vect2d* u,vect2d* v,vect2d* w)
     w->i=u->i+v->i;
     w->j=u->j+v->j;
 }
+/*Subtracts two vectors and stores the result on w*/
+void sub2d(vect2d* u,vect2d* v,vect2d* w)
+{
+    w->i=u->i-v->i;
+    w->j=u->j-v->j;
+}
 /*Rotates a vector by *rad* radians and stores the result on v*/
 void rot2d(vect2d* u,vect2d* w,double rad)
 {

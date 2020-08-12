@@ -23,6 +23,8 @@ double crossProductMagnitude(vect2d* u,vect2d* v);
 void scale2d(vect2d* u,double s,vect2d* w);
 /*Adds two vectors and stores the result on w*/
 void add2d(vect2d* u,vect2d* v,vect2d* w);
+/*Subtracts two vectors and stores the result on w*/
+void sub2d(vect2d* u,vect2d* v,vect2d* w);
 /*Rotates a vector by *rad* radians and stores the result on v*/
 void rot2d(vect2d* u,vect2d* w,double rad);
 /*Normalizes a vector*/

@@ -14,12 +14,18 @@ typedef struct ll{
     struct ll* next;
     struct ll* prev;
 }ll;
+typedef struct tree{
+    void* self;
+    struct ll* children;
+}tree;
 /*Pushes a new member to a list*/
 void ll_push(ll** list,void* member);
 /*Pops the last element of a list*/
 void *ll_pop(ll** list);
 /*Frees a list and its members*/
 void ll_free(ll** list);
+/*Frees a list of lists (tree)*/
+void ll_free_tree(ll** list);
 /*Removes the element that contains the specified member (does not free *member*)*/
 void ll_remove(ll** list,void* member);
 #endif

@@ -27,5 +27,6 @@ ac_state ModelState={
     .init=ModelState_init,
     .event=ModelState_event,
     .frame=ModelState_frame,
-    .destroy=ModelState_destroy
+    .destroy=ModelState_destroy,
+    .id=0
 };

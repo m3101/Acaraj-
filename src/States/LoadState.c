@@ -65,5 +65,6 @@ ac_state LoadState={
     .init=LoadState_init,
     .event=LoadState_event,
     .frame=LoadState_frame,
-    .destroy=LoadState_destroy
+    .destroy=LoadState_destroy,
+    .id=0
 };

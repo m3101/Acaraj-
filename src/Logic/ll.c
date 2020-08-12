@@ -48,6 +48,15 @@ void ll_free(ll** list)
     free(*list);
     *list=NULL;
 }
+/*Frees a list of lists*/
+void ll_free_tree(ll** list)
+{
+    if(!list||!*list)return;
+    if((*list)->next!=NULL)ll_free(&(*list)->next);
+    if((*list)->self!=NULL)ll_free_tree((*list)->self);
+    free(*list);
+    *list=NULL;
+}
 /*Removes the element that contains the specified member (does not free *member*)*/
 void ll_remove(ll** list,void* member)
 {

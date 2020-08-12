@@ -6,3 +6,5 @@ build
 tmp
 #libraries
 lib
+#Python graphers I used for analysing how fast the rigidbody system converged
+python
