@@ -35,7 +35,6 @@ void LoadState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* 
     icon_s=IMG_Load_RW(SDL_RWFromConstMem(_binary_icon_png_start,_binary_icon_png_end-_binary_icon_png_start),1);
     icon=SDL_CreateTextureFromSurface(renderer,icon_s);
 
-    loadAudios();
     ac_play_audio(&intro);
 
     tstart=system_current_time_millis();

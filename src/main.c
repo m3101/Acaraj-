@@ -18,19 +18,27 @@
     along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+#include "PackedResources/resources.h"
 #include "states.h"
 #include "statelist.h"
 #include "Audio/audiolist.h"
 #include "../lib/Simple-SDL2-Audio/src/audio.h"
+#include "sharedfonts.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
 int main()
 {
     /*Initializing everything*/
     if(SDL_Init(SDL_INIT_EVERYTHING)<0)return -1;
+    TTF_Init();
     initAudio();
+
+    /*Loading packed fonts*/
+    uni0553=TTF_OpenFontRW(SDL_RWFromConstMem(_binary_uni0553_ttf_start,_binary_uni0553_ttf_end-_binary_uni0553_ttf_start),1,25);
+
     SDL_Window* mwindow = SDL_CreateWindow("Acarajé V0.0.0-prealpha",0,0,640,480,SDL_WINDOW_SHOWN);
     SDL_Renderer* renderer;
     ac_state *cur_state=&DesignerState,*next_state=NULL;
@@ -46,6 +54,7 @@ int main()
         SDL_Quit();
         return -1;
     }
+    loadAudios();
 
     /*Main loop*/
     char ac_flags=01;
@@ -89,5 +98,7 @@ int main()
     endAudio();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(mwindow);
+    TTF_CloseFont(uni0553);
+    TTF_Quit();
     SDL_Quit();
 }

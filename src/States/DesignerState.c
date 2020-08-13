@@ -10,9 +10,11 @@
 #include "../states.h"
 #include "../statelist.h"
 #include "../Rendering/sqline.h"
+#include "../sharedfonts.h"
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 
-double dists[]={
+double Designer_dists[]={
     0,2,0,
     2,4,0,
     4,6,0,
@@ -23,7 +25,20 @@ double dists[]={
     10,16,0,
     16,18,0
 };
-double defaultEdit[]={
+SDL_Colour Designer_txtcol={255,255,255};
+char Designer_savemsg[26];
+SDL_Surface* Designer_msg_sur=NULL;
+SDL_Texture* Designer_msg_txt=NULL;
+unsigned char Designer_lastsave=255;
+double Designer_defaultEdit[20];
+double Designer_playerEdit[20];
+double designer_0[20];
+double designer_1[20];
+double designer_2[20];
+double designer_3[20];
+double designer_4[20];
+double* designer_states[]={designer_0,designer_1,designer_2,designer_3,designer_4};
+const double playerDesigner_defaultEdit[]={
 /*00,01*/    0,0,
 /*02,03*/    0,10,
 /*04,05*/    5,15,
@@ -33,74 +48,95 @@ double defaultEdit[]={
 /*12,13*/    0,20,
 /*14,15*/    5,40,
 /*16,17*/    10,20,
-///*18,19*/    20,32
+/*18,19*/    25,37
 };
-double playerEdit[]={
-/*00,01*/    0,0,
-/*02,03*/    0,10,
-/*04,05*/    5,15,
-/*06,07*/    10,10,
-/*08,09*/    10,0,
-/*10,11*/    5,35,
-/*12,13*/    0,20,
-/*14,15*/    5,40,
-/*16,17*/    10,20,
-/*18,19*/    20,32
-};
-const double playerDefaultEdit[]={
-/*00,01*/    0,0,
-/*02,03*/    0,10,
-/*04,05*/    5,15,
-/*06,07*/    10,10,
-/*08,09*/    10,0,
-/*10,11*/    5,35,
-/*12,13*/    0,20,
-/*14,15*/    5,40,
-/*16,17*/    10,20,
-/*18,19*/    20,32
-};
-
-unsigned char brokenflag=0;
+SDL_Rect Designer_txtpos={0,430,0,0};
+unsigned char Designer_brokenflag=0;
 void reset_edit()
 {
     for(char i=0;i<20;i++)
-        playerEdit[i]=defaultEdit[i];
+        Designer_playerEdit[i]=Designer_defaultEdit[i];
 }
-
+void DesignerState_save(char state,SDL_Renderer* renderer)
+{
+    double x=Designer_playerEdit[0]/10,y=Designer_playerEdit[1]/10;
+    for(unsigned char i=0;i<20;i++)
+        designer_states[state][i]=(Designer_playerEdit[i]/10)-(i%2==0?x:y);
+    Designer_lastsave=state;
+    Designer_savemsg[24]=Designer_lastsave+'0';
+    if(!Designer_msg_txt)
+    {
+        SDL_FreeSurface(Designer_msg_sur);
+        SDL_DestroyTexture(Designer_msg_txt);
+    }
+    Designer_msg_sur=TTF_RenderText_Solid(uni0553,Designer_savemsg,Designer_txtcol);
+    Designer_msg_txt=SDL_CreateTextureFromSurface(renderer,Designer_msg_sur);
+    SDL_QueryTexture(Designer_msg_txt,NULL,NULL,&Designer_txtpos.w,&Designer_txtpos.h);
+}
 struct {} DesignerState_Vars={};
 void DesignerState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {
     printf("In designer state.\n");
     unsigned char i,i3,ixa,iya,ixb,iyb;
+    strcpy(Designer_savemsg,"Position saved as input 0");
+    Designer_lastsave=255;
     for(i=0;i<20;i++)
     {
-        playerEdit[i]=playerDefaultEdit[i];
-        playerEdit[i]*=10;
+        Designer_playerEdit[i]=playerDesigner_defaultEdit[i];
+        Designer_playerEdit[i]*=10;
         if(i%2==1)
-            playerEdit[i]=460-playerEdit[i];
-        else playerEdit[i]+=300;
-        defaultEdit[i]=playerEdit[i];
+            Designer_playerEdit[i]=460-Designer_playerEdit[i];
+        else Designer_playerEdit[i]+=100;
+        Designer_defaultEdit[i]=Designer_playerEdit[i];
     }
     for(i=0;i<9;i++)
     {
         i3=3*i;
-        ixa=dists[i3];
-        iya=dists[i3]+1;
-        ixb=dists[i3+1];
-        iyb=dists[i3+1]+1;
-        dists[i3+2]=sqrt(
-            (playerEdit[ixa]-playerEdit[ixb])*(playerEdit[ixa]-playerEdit[ixb])+
-            (playerEdit[iya]-playerEdit[iyb])*(playerEdit[iya]-playerEdit[iyb])
+        ixa=Designer_dists[i3];
+        iya=Designer_dists[i3]+1;
+        ixb=Designer_dists[i3+1];
+        iyb=Designer_dists[i3+1]+1;
+        Designer_dists[i3+2]=sqrt(
+            (Designer_playerEdit[ixa]-Designer_playerEdit[ixb])*(Designer_playerEdit[ixa]-Designer_playerEdit[ixb])+
+            (Designer_playerEdit[iya]-Designer_playerEdit[iyb])*(Designer_playerEdit[iya]-Designer_playerEdit[iyb])
         );
     }
+    for(i=0;i<5;i++)DesignerState_save(i,renderer);
+    Designer_lastsave=255;
 }
 void DesignerState_event(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt)
 {
-    if(evt->key.keysym.sym==SDLK_t)
-        *next=&TestState;
+    if(evt->type==SDL_KEYDOWN)
+    {
+        switch (evt->key.keysym.sym)
+        {
+        case SDLK_t:
+            *next=&TestState;
+            break;
+        case SDLK_0:
+            DesignerState_save(0,renderer);
+            break;
+        case SDLK_1:
+            DesignerState_save(1,renderer);
+            break;
+        case SDLK_2:
+            DesignerState_save(2,renderer);
+            break;
+        case SDLK_3:
+            DesignerState_save(3,renderer);
+            break;
+        case SDLK_4:
+            DesignerState_save(4,renderer);
+            break;
+        }
+    }
 }
 void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {
+    if(Designer_lastsave!=255)
+    {
+        SDL_RenderCopy(renderer,Designer_msg_txt,NULL,&Designer_txtpos);
+    }
     SDL_SetRenderDrawColor(renderer, 200, 200, 200, SDL_ALPHA_OPAQUE);
     unsigned char i,i3=0,ixa,iya,ixb,iyb;
     int x,y;
@@ -110,8 +146,8 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
     for(i=0;i<20;i+=2)
     {
         dist=sqrt(
-            (playerEdit[i]-x)*(playerEdit[i]-x)+
-            (playerEdit[i+1]-y)*(playerEdit[i+1]-y)
+            (Designer_playerEdit[i]-x)*(Designer_playerEdit[i]-x)+
+            (Designer_playerEdit[i+1]-y)*(Designer_playerEdit[i+1]-y)
         );
         if(dist<mind)
         {
@@ -119,22 +155,22 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
             mind=dist;
         }
     }
-    SDL_RenderDrawLine(renderer,playerEdit[i3]-10,playerEdit[i3+1]-10,playerEdit[i3]+10,playerEdit[i3+1]+10);
-    SDL_RenderDrawLine(renderer,playerEdit[i3]-10,playerEdit[i3+1]+10,playerEdit[i3]+10,playerEdit[i3+1]-10);
+    SDL_RenderDrawLine(renderer,Designer_playerEdit[i3]-10,Designer_playerEdit[i3+1]-10,Designer_playerEdit[i3]+10,Designer_playerEdit[i3+1]+10);
+    SDL_RenderDrawLine(renderer,Designer_playerEdit[i3]-10,Designer_playerEdit[i3+1]+10,Designer_playerEdit[i3]+10,Designer_playerEdit[i3+1]-10);
     if(SDL_BUTTON(1)&but)
     {
-        if(!(brokenflag&01))
+        if(!(Designer_brokenflag&01))
         {
             if(i3!=0&&i3!=8)
             {
-                playerEdit[i3]=x;
-                playerEdit[i3+1]=y;
+                Designer_playerEdit[i3]=x;
+                Designer_playerEdit[i3+1]=y;
             }
             else
-            playerEdit[i3]=x;
+            Designer_playerEdit[i3]=x;
         }
     }
-    else if(brokenflag&01)brokenflag&=!01;
+    else if(Designer_brokenflag&01)Designer_brokenflag&=~01;
 
     /*Rigidbody constraint loop*/
     mind=DBL_MAX;
@@ -144,29 +180,29 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
         for(i=0;i<9;i++)
         {
             i3=3*i;
-            ixa=dists[i3];
-            iya=dists[i3]+1;
-            ixb=dists[i3+1];
-            iyb=dists[i3+1]+1;
-            dx=playerEdit[ixb]-playerEdit[ixa];
-            dy=playerEdit[ixb+1]-playerEdit[ixa+1];
-            dist=(sqrt(dx*dx+dy*dy)-dists[i3+2])/dists[i3+2];
+            ixa=Designer_dists[i3];
+            iya=Designer_dists[i3]+1;
+            ixb=Designer_dists[i3+1];
+            iyb=Designer_dists[i3+1]+1;
+            dx=Designer_playerEdit[ixb]-Designer_playerEdit[ixa];
+            dy=Designer_playerEdit[ixb+1]-Designer_playerEdit[ixa+1];
+            dist=(sqrt(dx*dx+dy*dy)-Designer_dists[i3+2])/Designer_dists[i3+2];
             if(isnan(dist)||isinf(dist))
             {
                 reset_edit();
-                brokenflag|=01;
+                Designer_brokenflag|=01;
                 goto draw;
             }
             mind=mind>dist?dist:mind;
             if(ixa!=8&&ixa!=0)
             {
-                playerEdit[ixa]+=dx*dist*.5;
-                playerEdit[ixa+1]+=dy*dist*.5;
+                Designer_playerEdit[ixa]+=dx*dist*.5;
+                Designer_playerEdit[ixa+1]+=dy*dist*.5;
             }
             if(ixb!=8&&ixb!=0)
             {
-                playerEdit[ixb]-=dx*dist*.5;
-                playerEdit[ixb+1]-=dy*dist*.5;
+                Designer_playerEdit[ixb]-=dx*dist*.5;
+                Designer_playerEdit[ixb+1]-=dy*dist*.5;
             }
         }
     }
@@ -174,16 +210,18 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
     for(i=0;i<9;i++)
     {
         i3=3*i;
-        ixa=dists[i3];
-        iya=dists[i3]+1;
-        ixb=dists[i3+1];
-        iyb=dists[i3+1]+1;
+        ixa=Designer_dists[i3];
+        iya=Designer_dists[i3]+1;
+        ixb=Designer_dists[i3+1];
+        iyb=Designer_dists[i3+1]+1;
         if(i==8)SDL_SetRenderDrawColor(renderer, 0, 255, 0, SDL_ALPHA_OPAQUE);
-        squigglyLine(playerEdit[ixa],playerEdit[iya],playerEdit[ixb],playerEdit[iyb],5,2,renderer);
+        squigglyLine(Designer_playerEdit[ixa],Designer_playerEdit[iya],Designer_playerEdit[ixb],Designer_playerEdit[iyb],5,2,renderer);
     }
 }
 void DesignerState_destroy()
 {
+    SDL_DestroyTexture(Designer_msg_txt);
+    SDL_FreeSurface(Designer_msg_sur);
 }
 ac_state DesignerState={
     .stateVars=&DesignerState_Vars,

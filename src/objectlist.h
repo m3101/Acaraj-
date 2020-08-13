@@ -19,14 +19,22 @@ Player
 /*x,y*/
 double playerDefault[20];
 typedef struct player_data{
-    double target[20];
+    double target0[20];
+    double target1[20];
+    double target2[20];
+    double target3[20];
+    double target4[20];
     double cur[20];
     double prev[20];
     double forceAcc[20];
     unsigned char team;
-    unsigned char mode;
+    unsigned char stateFlags;
+    unsigned char animstate;
+    int x;
+    int y;
+    ll* world;
 }player_data;
 char Player_frame(ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags);
 void Player_destroy(ac_object** self);
-ac_object *Player(double x, double y, unsigned char team);
+ac_object *Player(double x, double y, unsigned char team,ll* world);
 #endif

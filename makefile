@@ -31,4 +31,4 @@ tests:
 	cd tmp;\
 		gcc $(shell find $(shell pwd)/src/ -print|grep "\.c") -c -g;
 	@echo "\nLinking everything...\n"
-	gcc $(shell find $(shell pwd)/tmp/ -print|grep "\.o") -o build/acjg -lSDL2 -lSDL2_image -lm
+	gcc $(shell find $(shell pwd)/tmp/ -print|grep "\.o") -o build/acjg -lSDL2 -lSDL2_image -lSDL2_ttf -lm

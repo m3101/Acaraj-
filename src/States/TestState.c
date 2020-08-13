@@ -21,13 +21,19 @@ struct {} TestState_Vars={};
 void TestState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {
     printf("In test state.\n");
-    ll_push(&test_world,Player(100,100,0));
+    ll_push(&test_world,Player(100,100,0,test_world));
     /*playMusicFromMemory(deathsfolia,SDL_MIX_MAXVOLUME);*/
 }
 void TestState_event(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt)
 {
-    if(evt->key.keysym.sym==SDLK_p)
+    if(evt->type==SDL_KEYDOWN&&evt->key.keysym.sym==SDLK_p)
+    {
         *next=&DesignerState;
+        return;
+    }
+    ll* curObj=test_world;
+    for(;curObj!=NULL;curObj=curObj->next)
+        ((ac_object*)curObj->self)->event((ac_object*)curObj->self,self,next,renderer,window,ac_flags,evt);
 }
 void TestState_frame(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {
@@ -36,10 +42,11 @@ void TestState_frame(struct ac_state** self,struct ac_state** next,SDL_Renderer*
 }
 void TestState_destroy()
 {
+    stopMusic();
     ll* curObj=test_world;
     for(;curObj!=NULL;curObj=curObj->next)
     {
-        ((ac_object*)test_world->self)->destroy(&test_world->self);
+        ((ac_object*)test_world->self)->destroy((ac_object**)&test_world->self);
     }
     ll_free(&test_world);
 }
