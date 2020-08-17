@@ -9,6 +9,7 @@ void squigglyLine(double x0,double y0,double x1,double y1,double squigglelen,uns
     b.i=x1;b.j=y1;
     sub2d(&b,&a,&c);
     double ratio=sqrt(dotProduct2d(&c,&c))/squigglelen,scale=1;
+    if(isinf(ratio)||isnan(ratio)||ratio==0)return;
     scale2d(&c,1/ratio,&c);
     b.i=a.i;b.j=a.j;
     while(ratio>=0)

@@ -11,6 +11,7 @@
 #include "../statelist.h"
 #include "../Rendering/sqline.h"
 #include "../sharedfonts.h"
+#include "../Maths/Vect2d/Vect2d.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
 
@@ -21,9 +22,9 @@ double Designer_dists[]={
     6,8,0,
     4,10,0,
     10,12,0,
-    10,14,0,
-    10,16,0,
-    16,18,0
+    10,14,0,/*head*/
+    10,16,0,/*swordarm*/
+    16,18,0/*sword*/
 };
 SDL_Colour Designer_txtcol={255,255,255};
 char Designer_savemsg[26];
@@ -157,6 +158,7 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
     }
     SDL_RenderDrawLine(renderer,Designer_playerEdit[i3]-10,Designer_playerEdit[i3+1]-10,Designer_playerEdit[i3]+10,Designer_playerEdit[i3+1]+10);
     SDL_RenderDrawLine(renderer,Designer_playerEdit[i3]-10,Designer_playerEdit[i3+1]+10,Designer_playerEdit[i3]+10,Designer_playerEdit[i3+1]-10);
+
     if(SDL_BUTTON(1)&but)
     {
         if(!(Designer_brokenflag&01))
@@ -175,8 +177,23 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
     /*Rigidbody constraint loop*/
     mind=DBL_MAX;
     double dx,dy;
+    vect2d sacva,sacvb,sacvc;
+    double sqarmlengtht,projectiont,normalprojectiont;
     for(int ii=0;ii<3;ii++)
     {
+        /*sword angle constraint values*/
+        sacva.i=Designer_playerEdit[10];
+        sacva.j=Designer_playerEdit[11];
+        sacvb.i=Designer_playerEdit[16];
+        sacvb.j=Designer_playerEdit[17];
+        sacvc.i=Designer_playerEdit[18],
+        sacvc.j=Designer_playerEdit[19];
+        sub2d(&sacvb,&sacva,&sacvb);/*sacvb=arm*/
+        sub2d(&sacvc,&sacva,&sacvc);/*sacvc=sword*/
+        sqarmlengtht=dotProduct2d(&sacvb,&sacvb);
+        projectiont=dotProduct2d(&sacvb,&sacvc)/sqarmlengtht;
+        add2dscale(&sacvc,-projectiont,&sacvb,&sacva);
+        normalprojectiont=sqrt(dotProduct2d(&sacva,&sacva)/sqarmlengtht);
         for(i=0;i<9;i++)
         {
             i3=3*i;
@@ -184,8 +201,10 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
             iya=Designer_dists[i3]+1;
             ixb=Designer_dists[i3+1];
             iyb=Designer_dists[i3+1]+1;
+
             dx=Designer_playerEdit[ixb]-Designer_playerEdit[ixa];
             dy=Designer_playerEdit[ixb+1]-Designer_playerEdit[ixa+1];
+
             dist=(sqrt(dx*dx+dy*dy)-Designer_dists[i3+2])/Designer_dists[i3+2];
             if(isnan(dist)||isinf(dist))
             {
@@ -203,6 +222,36 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
             {
                 Designer_playerEdit[ixb]-=dx*dist*.5;
                 Designer_playerEdit[ixb+1]-=dy*dist*.5;
+            }
+
+            /*Head angle constraint*/
+
+            /*Sword angle constraint*/
+            if(ixa==10)
+            {
+                sacva.i=Designer_playerEdit[10];
+                sacva.j=Designer_playerEdit[11];
+                sacvb.i=Designer_playerEdit[16];
+                sacvb.j=Designer_playerEdit[17];
+                sacvc.i=0;sacvc.j=0;/*Our final sword position (minus the root of the arm)*/
+                sub2d(&sacvb,&sacva,&sacva);/*sacva=arm*/
+
+                /*sacvb=perpendicular component of the sword's position*/
+                sacvb.i=-sacva.j;
+                sacvb.j=sacva.i;
+                scale2d(&sacvb,normalprojectiont,&sacvb);
+
+                /*
+                sacvc=sacva*projectiont+sacvb
+                that is, sacva gives us the component parallel to the arm
+                and sacvb is the perpendicular component.
+                */
+                add2dscale(&sacvc,-projectiont,&sacva,&sacvc);
+                add2d(&sacvc,&sacvb,&sacvc);
+
+                /*Then we reposition the sword*/
+                Designer_playerEdit[18]=Designer_playerEdit[10]+sacvc.i;
+                Designer_playerEdit[19]=Designer_playerEdit[11]+sacvc.j;
             }
         }
     }
@@ -223,6 +272,7 @@ void DesignerState_destroy()
     SDL_DestroyTexture(Designer_msg_txt);
     SDL_FreeSurface(Designer_msg_sur);
 }
+
 ac_state DesignerState={
     .stateVars=&DesignerState_Vars,
     .init=DesignerState_init,

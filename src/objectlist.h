@@ -30,6 +30,7 @@ typedef struct player_data{
     unsigned char team;
     unsigned char stateFlags;
     unsigned char animstate;
+    unsigned char controls[6];
     int x;
     int y;
     ll* world;

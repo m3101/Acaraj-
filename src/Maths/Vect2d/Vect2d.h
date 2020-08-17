@@ -14,6 +14,12 @@ typedef struct
     double i;
     double j;
 }vect2d;
+typedef struct
+{
+    vect2d pos;
+    vect2d dirscale;
+} ray2d;
+
 
 /*Returns the dot product between two vectors*/
 double dotProduct2d(vect2d* u,vect2d* v);
@@ -23,6 +29,8 @@ double crossProductMagnitude(vect2d* u,vect2d* v);
 void scale2d(vect2d* u,double s,vect2d* w);
 /*Adds two vectors and stores the result on w*/
 void add2d(vect2d* u,vect2d* v,vect2d* w);
+/*Perdorms u+s*v and stores the result on w*/
+void add2dscale(vect2d* u,double s,vect2d* v,vect2d* w);
 /*Subtracts two vectors and stores the result on w*/
 void sub2d(vect2d* u,vect2d* v,vect2d* w);
 /*Rotates a vector by *rad* radians and stores the result on v*/

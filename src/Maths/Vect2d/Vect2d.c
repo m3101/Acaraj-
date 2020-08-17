@@ -31,6 +31,12 @@ void add2d(vect2d* u,vect2d* v,vect2d* w)
     w->i=u->i+v->i;
     w->j=u->j+v->j;
 }
+/*Performs u+s*v and stores the result on w*/
+void add2dscale(vect2d* u,double s,vect2d* v,vect2d* w)
+{
+    w->i=u->i+s*v->i;
+    w->j=u->j+s*v->j;
+}
 /*Subtracts two vectors and stores the result on w*/
 void sub2d(vect2d* u,vect2d* v,vect2d* w)
 {

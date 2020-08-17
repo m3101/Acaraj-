@@ -28,6 +28,17 @@ double playerDefault[]={
 /*16,17*/    10,20,
 /*18,19*/    25,37
 };
+unsigned char PlayerLinks[]={
+    0,2,
+    2,4,
+    4,6,
+    6,8,
+    4,10,
+    10,12,
+    10,14,
+    10,16,
+    16,18
+};
 
 void initVerticesT(ac_object* player,int x, int y,double* target,double* pattern)
 {
@@ -74,25 +85,15 @@ char Player_frame(ac_object *self,ac_state** current,ac_state** next,SDL_Rendere
                   *stateflags=&((player_data*)(self->objdata))->stateFlags;
     double squigglelen=4;
     double *cur=((player_data*)(self->objdata))->cur,
+           *prev=((player_data*)(self->objdata))->prev,
            *target0=((player_data*)(self->objdata))->target0,
            *target1=((player_data*)(self->objdata))->target1,
            *target2=((player_data*)(self->objdata))->target2,
            *target3=((player_data*)(self->objdata))->target3,
            *target4=((player_data*)(self->objdata))->target4,
            *targets[]={target0,target1,target2,target3,target4},
-           tdist,dist;
+           tdist,dist,temp;
     int *x=&((player_data*)(self->objdata))->x,*y=&((player_data*)(self->objdata))->y,dx,dy;
-    unsigned char links[]={
-                0,2,
-                2,4,
-                4,6,
-                6,8,
-                4,10,
-                10,12,
-                10,14,
-                10,16,
-                16,18
-            };
     skipvx=((player_data*)(self->objdata))->animstate;
     /*The current target*/
     if(*stateflags&020)target=3;
@@ -100,6 +101,22 @@ char Player_frame(ac_object *self,ac_state** current,ac_state** next,SDL_Rendere
     else if(*stateflags&04)target=1;
     else if(*stateflags&010)target=2;
     else target=0;
+
+    const double wobbliness=.8;
+    /*Inertia/Speed effect*/
+    for(i=0;i<10;i++)
+    {
+        i2=2*i;
+        if((*stateflags&01||*stateflags&02)&&i2==skipvx)
+            continue;
+        temp=cur[i2];
+        cur[i2]+=wobbliness*(cur[i2]-prev[i2]);
+        prev[i2]=temp;
+        temp=cur[i2+1];
+        cur[i2+1]+=wobbliness*(cur[i2+1]-prev[i2+1]);
+        prev[i2+1]=temp;
+    }
+
     /*Calculate distances and constraints*/
     cdc:
     /*Non-rigid constraints*/
@@ -112,9 +129,9 @@ char Player_frame(ac_object *self,ac_state** current,ac_state** next,SDL_Rendere
         dx=(targets[target][i2]+*x)-cur[i2];
         dy=(targets[target][i2+1]+(480-*y))-cur[i2+1];
         dist=dx;
-        cur[i2]+=dx*.3;
+        cur[i2]+=dx*.4;
         dist=dy;
-        cur[i2+1]+=dy*.3;
+        cur[i2+1]+=dy*.4;
     }
     /*Rigid constraints*/
     for(j=0;j<2;j++)
@@ -122,9 +139,9 @@ char Player_frame(ac_object *self,ac_state** current,ac_state** next,SDL_Rendere
         for(i=0;i<9;i++)
         {
             i2=2*i;
-            ixa=links[i2];
+            ixa=PlayerLinks[i2];
             iya=ixa+1;
-            ixb=links[i2+1];
+            ixb=PlayerLinks[i2+1];
             iyb=ixb+1;
             dx=targets[target][ixa]-targets[target][ixb];
             dy=targets[target][iya]-targets[target][iyb];
@@ -196,56 +213,18 @@ void Player_event(ac_object *self,ac_state** current,ac_state** next,SDL_Rendere
 {
     if(evt->type==SDL_KEYDOWN)
     {
-        switch (evt->key.keysym.sym)
+        for(unsigned char i=0;i<6;i++)
+        if(evt->key.keysym.sym==((player_data*)self->objdata)->controls[i])
         {
-        case SDLK_d:
-            ((player_data*)(self->objdata))->stateFlags|=01;
-            break;
-        case SDLK_a:
-            ((player_data*)(self->objdata))->stateFlags|=02;
-            break;
-        case SDLK_w:
-            ((player_data*)(self->objdata))->stateFlags|=04;
-            break;
-        case SDLK_s:
-            ((player_data*)(self->objdata))->stateFlags|=010;
-            break;
-        case SDLK_q:
-            ((player_data*)(self->objdata))->stateFlags|=020;
-            break;
-        case SDLK_e:
-            ((player_data*)(self->objdata))->stateFlags|=040;
-            break;
-        case SDLK_z:
-            ((player_data*)(self->objdata))->stateFlags|=0100;
-            break;
+            ((player_data*)(self->objdata))->stateFlags|=(unsigned char)1<<i;
         }
     }
     else if(evt->type==SDL_KEYUP)
     {
-        switch (evt->key.keysym.sym)
+        for(unsigned char i=0;i<6;i++)
+        if(evt->key.keysym.sym==((player_data*)self->objdata)->controls[i])
         {
-        case SDLK_d:
-            ((player_data*)(self->objdata))->stateFlags&=~01;
-            break;
-        case SDLK_a:
-            ((player_data*)(self->objdata))->stateFlags&=~02;
-            break;
-        case SDLK_w:
-            ((player_data*)(self->objdata))->stateFlags&=~04;
-            break;
-        case SDLK_s:
-            ((player_data*)(self->objdata))->stateFlags&=~010;
-            break;
-        case SDLK_q:
-            ((player_data*)(self->objdata))->stateFlags&=~020;
-            break;
-        case SDLK_e:
-            ((player_data*)(self->objdata))->stateFlags&=~040;
-            break;
-        case SDLK_z:
-            ((player_data*)(self->objdata))->stateFlags&=~0100;
-            break;
+            ((player_data*)(self->objdata))->stateFlags&=~((unsigned char)1<<i);
         }
     }
 }
@@ -256,9 +235,27 @@ void Player_destroy(ac_object **self)
     *self=NULL;
 }
 
-vect2d Player_collideEdge(vect2d pos,vect2d dir,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt)
+char Player_collideEdge(vect2d pos,vect2d dir,ray2d* projection,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt,char col_flags)
 {
-
+    unsigned char i2;
+    unsigned char n=0;
+    ray2d ret;
+    vect2d a,b,ea,eb;
+    ret.dirscale.i=0;
+    ret.dirscale.j=0;
+    ret.pos.i=0;
+    ret.pos.j=0;
+    /*For each edge, check whether the vector is intersecting*/
+    for(unsigned char i=0;i<9;i++)
+    {
+        i2=2*i;
+        ea.i=((player_data*)self->objdata)->cur[PlayerLinks[i2]];
+        ea.j=((player_data*)self->objdata)->cur[PlayerLinks[i2]+1];
+        eb.i=((player_data*)self->objdata)->cur[PlayerLinks[i2+1]];
+        eb.j=((player_data*)self->objdata)->cur[PlayerLinks[i2+1]+1];
+        sub2d(&pos,&ea,&a);
+    }
+    return n;
 }
 
 /*
@@ -284,6 +281,16 @@ ac_object *Player(double x, double y, unsigned char team,ll* world)
     ret->destroy=Player_destroy;
     ret->frame=Player_frame;
     ret->event=Player_event;
+    ret->collideEdge=Player_collideEdge;
+    if(team==0)
+    {
+        ((player_data*)ret->objdata)->controls[0]=SDLK_d;
+        ((player_data*)ret->objdata)->controls[1]=SDLK_a;
+        ((player_data*)ret->objdata)->controls[2]=SDLK_w;
+        ((player_data*)ret->objdata)->controls[3]=SDLK_s;
+        ((player_data*)ret->objdata)->controls[4]=SDLK_c;
+        ((player_data*)ret->objdata)->controls[5]=SDLK_v;
+    }
     initVertices(ret,0,0,playerDefault);
     initVerticesT(ret,0,0,((player_data*)ret->objdata)->target0,designer_states[0]);
     initVerticesT(ret,0,0,((player_data*)ret->objdata)->target1,designer_states[1]);
