@@ -25,10 +25,16 @@ tests:
 	@mkdir tmp
 	@echo "\nGenerating packed resources...\n"
 	cd src/PackedResources;make
+	@echo "\nGenerating packed shaders\n"
+	ld -r -b binary src/shaders/vhs.vert -o tmp/vhsV.o
+	objdump tmp/vhsV.o -x|grep binary
+	ld -r -b binary src/shaders/vhs.frag -o tmp/vhsF.o
+	objdump tmp/vhsF.o -x|grep binary
 	@echo "\nCompiling external library(ies)\n"
 	gcc lib/Simple-SDL2-Audio/src/audio.c -o tmp/sdl2audio.o -c
+	g++ -c /usr/local/share/gl3w/gl3w.c -o tmp/gl3w.o -g
 	@echo "\nCompiling C...\n"
 	cd tmp;\
 		gcc $(shell find $(shell pwd)/src/ -print|grep "\.c") -c -g;
 	@echo "\nLinking everything...\n"
-	gcc $(shell find $(shell pwd)/tmp/ -print|grep "\.o") -o build/acjg -lSDL2 -lSDL2_image -lSDL2_ttf -lm
+	gcc $(shell find $(shell pwd)/tmp/ -print|grep "\.o") -o build/acjg -lSDL2 -lSDL2_image -lSDL2_ttf -lm -lGL -ldl

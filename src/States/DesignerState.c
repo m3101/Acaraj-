@@ -182,18 +182,18 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
     for(int ii=0;ii<3;ii++)
     {
         /*sword angle constraint values*/
-        sacva.i=Designer_playerEdit[10];
+        /*sacva.i=Designer_playerEdit[10];
         sacva.j=Designer_playerEdit[11];
         sacvb.i=Designer_playerEdit[16];
         sacvb.j=Designer_playerEdit[17];
         sacvc.i=Designer_playerEdit[18],
         sacvc.j=Designer_playerEdit[19];
-        sub2d(&sacvb,&sacva,&sacvb);/*sacvb=arm*/
-        sub2d(&sacvc,&sacva,&sacvc);/*sacvc=sword*/
+        sub2d(&sacvb,&sacva,&sacvb);
+        sub2d(&sacvc,&sacva,&sacvc);
         sqarmlengtht=dotProduct2d(&sacvb,&sacvb);
         projectiont=dotProduct2d(&sacvb,&sacvc)/sqarmlengtht;
         add2dscale(&sacvc,-projectiont,&sacvb,&sacva);
-        normalprojectiont=sqrt(dotProduct2d(&sacva,&sacva)/sqarmlengtht);
+        normalprojectiont=sqrt(dotProduct2d(&sacva,&sacva)/sqarmlengtht);*/
         for(i=0;i<9;i++)
         {
             i3=3*i;
@@ -227,32 +227,25 @@ void DesignerState_frame(struct ac_state** self,struct ac_state** next,SDL_Rende
             /*Head angle constraint*/
 
             /*Sword angle constraint*/
-            if(ixa==10)
+            /*if(ixa==10)
             {
                 sacva.i=Designer_playerEdit[10];
                 sacva.j=Designer_playerEdit[11];
                 sacvb.i=Designer_playerEdit[16];
                 sacvb.j=Designer_playerEdit[17];
-                sacvc.i=0;sacvc.j=0;/*Our final sword position (minus the root of the arm)*/
-                sub2d(&sacvb,&sacva,&sacva);/*sacva=arm*/
+                sacvc.i=0;sacvc.j=0;
+                sub2d(&sacvb,&sacva,&sacva);
 
-                /*sacvb=perpendicular component of the sword's position*/
                 sacvb.i=-sacva.j;
                 sacvb.j=sacva.i;
                 scale2d(&sacvb,normalprojectiont,&sacvb);
 
-                /*
-                sacvc=sacva*projectiont+sacvb
-                that is, sacva gives us the component parallel to the arm
-                and sacvb is the perpendicular component.
-                */
-                add2dscale(&sacvc,-projectiont,&sacva,&sacvc);
+                add2dscale(&sacvc,projectiont,&sacva,&sacvc);
                 add2d(&sacvc,&sacvb,&sacvc);
 
-                /*Then we reposition the sword*/
                 Designer_playerEdit[18]=Designer_playerEdit[10]+sacvc.i;
                 Designer_playerEdit[19]=Designer_playerEdit[11]+sacvc.j;
-            }
+            }*/
         }
     }
     draw:

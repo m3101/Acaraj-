@@ -20,6 +20,6 @@ typedef struct ac_object{
     char (*frame)(struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags);
     void (*destroy)(struct ac_object **self);
     void (*event)(struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt);
-    char (*collideEdge)(vect2d pos,vect2d dir,ray2d* projection,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt,char col_flags);
+    char (*collideEdge)(vect2d *pos,vect2d *dir,ray2d* projection,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt,char col_flags);
 }ac_object;
 #endif

@@ -18,6 +18,11 @@ Player
 */
 /*x,y*/
 double playerDefault[20];
+/*
+used stateflags:
+01->020  = Input flags (controls)
+040      = Player death
+*/
 typedef struct player_data{
     double target0[20];
     double target1[20];

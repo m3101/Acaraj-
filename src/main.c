@@ -28,46 +28,158 @@
 #include <stdlib.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <gl3w/GL/gl3w.h>
+#include <SDL2/SDL_opengl.h>
+#include <assert.h>
+
+/*OpenGL Shaders*/
+extern char _binary_src_shaders_vhs_vert_start[];
+extern char _binary_src_shaders_vhs_vert_end[];
+extern char _binary_src_shaders_vhs_frag_start[];
+extern char _binary_src_shaders_vhs_frag_end[];
+
+/*OpenGL VBO*/
+float screenVX[]={
+    // positions   // texCoords
+    -1.0f,  -1.0f,  0.0f, 1.0f,
+    -1.0f, 1.0f,  0.0f, 0.0f,
+    1.0f,  1.0f,  1.0f, 0.0f,
+
+    -1.0f, -1.0f,  0.0f, 1.0f,
+    1.0f,  1.0f,  1.0f, 0.0f,
+    1.0f, -1.0f,  1.0f, 1.0f
+};
+
+#define WW 640
+#define WH 480
 
 int main()
 {
     /*Initializing everything*/
+    gl3wInit();
     if(SDL_Init(SDL_INIT_EVERYTHING)<0)return -1;
     TTF_Init();
     initAudio();
 
-    /*Loading packed fonts*/
-    uni0553=TTF_OpenFontRW(SDL_RWFromConstMem(_binary_uni0553_ttf_start,_binary_uni0553_ttf_end-_binary_uni0553_ttf_start),1,25);
-
-    SDL_Window* mwindow = SDL_CreateWindow("Acarajé V0.0.0-prealpha",0,0,640,480,SDL_WINDOW_SHOWN);
-    SDL_Renderer* renderer;
-    ac_state *cur_state=&DesignerState,*next_state=NULL;
+    /*Window creation (for OpenGL Context)*/
+    SDL_Window* mwindow = SDL_CreateWindow("Acarajé V0.0.0-prealpha",0,0,WW,WH,SDL_WINDOW_OPENGL);
     if(mwindow == NULL)
     {
         SDL_Quit();
         return -1;
     }
-    renderer = SDL_CreateRenderer(mwindow,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+    SDL_GLContext Context = SDL_GL_CreateContext(mwindow);
+
+    SDL_Renderer* renderer = SDL_CreateRenderer(mwindow,-1,SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
     if(renderer == NULL)
     {
         SDL_DestroyWindow(mwindow);
         SDL_Quit();
         return -1;
     }
+
+    /*Loading packed fonts*/
+    uni0553=TTF_OpenFontRW(SDL_RWFromConstMem(_binary_uni0553_ttf_start,_binary_uni0553_ttf_end-_binary_uni0553_ttf_start),1,25);
+    
+    /*Loading packed shaders*/
+    int success;
+    char compileLog[512];
+
+    int VHSVshader=glCreateShader(GL_VERTEX_SHADER);
+    int VHSVlen=_binary_src_shaders_vhs_vert_end-_binary_src_shaders_vhs_vert_start;
+    const char* bufferpointer=_binary_src_shaders_vhs_vert_start;
+    glShaderSource(VHSVshader,1,&bufferpointer,&VHSVlen);
+    glCompileShader(VHSVshader);
+    glGetShaderiv(VHSVshader,GL_COMPILE_STATUS,&success);
+    if(!success)
+    {
+        glGetShaderInfoLog(VHSVshader,512,NULL,compileLog);
+        printf("Shader Compilation error:\n%s",compileLog);
+        exit(1);
+    }
+
+    int VHSFshader=glCreateShader(GL_FRAGMENT_SHADER);
+    int VHSFlen=_binary_src_shaders_vhs_frag_end-_binary_src_shaders_vhs_frag_start;
+    bufferpointer=_binary_src_shaders_vhs_frag_start;
+    glShaderSource(VHSFshader,1,&bufferpointer,&VHSFlen);
+    glCompileShader(VHSFshader);
+    glGetShaderiv(VHSFshader,GL_COMPILE_STATUS,&success);
+    if(!success)
+    {
+        glGetShaderInfoLog(VHSFshader,512,NULL,compileLog);
+        printf("Shader Compilation error:\n%s",compileLog);
+        exit(1);
+    }
+
+    int shaderprog=glCreateProgram();
+    glAttachShader(shaderprog,VHSVshader);
+    glAttachShader(shaderprog,VHSFshader);
+    glLinkProgram(shaderprog);
+    glGetProgramiv(shaderprog,GL_LINK_STATUS,&success);
+    if(!success)
+    {
+        glGetProgramInfoLog(shaderprog,512,NULL,compileLog);
+        printf("Shader linking error:\n%s",compileLog);
+        exit(1);
+    }
+    printf("Shader Program ID %d\n",shaderprog);
+    glDeleteShader(VHSFshader);
+    glDeleteShader(VHSVshader);
+
+    SDL_Texture* screen=SDL_CreateTexture(renderer,SDL_PIXELFORMAT_RGBA8888,SDL_TEXTUREACCESS_TARGET,WW,WH);
+    assert(screen);
+    SDL_GL_BindTexture(screen,NULL,NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    float borderColor[] = { 0.2f, 0.2f, 0.2f, 1.0f };
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+    SDL_GL_UnbindTexture(screen);
+
+    /*Screen vertices for OpenGL shaders*/
+    unsigned int scrVBO,scrVAO;
+    glGenVertexArrays(1,&scrVAO);
+    glGenBuffers(1,&scrVBO);
+    glBindVertexArray(scrVAO);
+    glBindBuffer(GL_ARRAY_BUFFER,scrVBO);
+    glBufferData(GL_ARRAY_BUFFER,sizeof(screenVX),&screenVX,GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)0);
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1,2,GL_FLOAT,GL_FALSE,4*sizeof(float),(void*)(sizeof(float)*2));
+
+    /*Game things*/
+    ac_state *cur_state=&LoadState,*next_state=NULL;
     loadAudios();
 
     /*Main loop*/
-    char ac_flags=01;
+    char ac_flags=03;
     /*
     Flags:
     01 - Continue main loop (halts when unset)
+    02 - Use shaders
     */
+
+    int sid,tid,fid;
+
+    glGetIntegerv(GL_CURRENT_PROGRAM,&sid);
+    glUseProgram(shaderprog);
+    GLint scrtexid=glGetUniformLocation(shaderprog,"scrTex");
+    printf("scrtexid=%d\n",scrtexid);
+    GLint tickid=glGetUniformLocation(shaderprog,"ticks");
+    printf("ticks=%d\n",tickid);
+    glUseProgram(sid);
+
     uint32_t tstart,tend,frame_time=1000/30;
     cur_state->init(&cur_state,&next_state,renderer,mwindow,&ac_flags);
     SDL_Event evt;
     while(ac_flags&01)
     {
         tstart=SDL_GetTicks();
+        SDL_SetRenderTarget(renderer,screen);
+        glClearColor(0.0,0.0,0.0,0.0);
         SDL_SetRenderDrawColor(renderer, 0,0,0, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
         /*Managing state changes*/
@@ -82,14 +194,50 @@ int main()
         /*Event handling*/
         while(SDL_PollEvent(&evt))
         {
-            if(evt.type == SDL_QUIT){ac_flags&=!01;}
+            if(evt.type == SDL_QUIT){ac_flags&=~01;}
             cur_state->event(&cur_state,&next_state,renderer,mwindow,&ac_flags,&evt);
         }
 
         cur_state->frame(&cur_state,&next_state,renderer,mwindow,&ac_flags);
 
-        /*Rendering and framerate stabilization*/
+        /*Rendering*/
         SDL_RenderPresent(renderer);
+        if(ac_flags&02)
+        {
+            glGetIntegerv(GL_CURRENT_PROGRAM,&sid);
+            glGetIntegerv(GL_TEXTURE_BINDING_2D,&tid);
+            glGetIntegerv(GL_FRAMEBUFFER_BINDING,&fid);
+
+            glBindFramebuffer(GL_FRAMEBUFFER,0);
+            glDisable(GL_DEPTH_TEST);
+            glViewport(0, 0, WW, WH);
+            glClearColor(1.f, 0.f, 1.f, 1.f);
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(shaderprog);
+            glBindVertexArray(scrVAO);
+            glActiveTexture(GL_TEXTURE0);
+            SDL_GL_BindTexture(screen,NULL,NULL);
+            glUniform1i(scrtexid,0);
+            glUniform1ui(tickid,tstart);
+            glDrawArrays(GL_TRIANGLES,0,6);
+
+            SDL_GL_SwapWindow(mwindow);
+
+            SDL_GL_UnbindTexture(screen);
+            glBindTexture(GL_TEXTURE_2D,tid);
+            glUseProgram(sid);
+            glBindFramebuffer(GL_FRAMEBUFFER,fid);
+        }
+        else
+        {
+            SDL_SetRenderTarget(renderer,NULL);
+            SDL_RenderCopy(renderer,screen,NULL,NULL);
+            SDL_RenderPresent(renderer);
+        }
+        SDL_GL_SwapWindow(mwindow);
+        
+        /*Framerate stabilization*/
         tend=SDL_GetTicks();
         if(tend-tstart<frame_time)
             SDL_Delay(frame_time-(tend-tstart));

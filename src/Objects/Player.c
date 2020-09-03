@@ -235,12 +235,14 @@ void Player_destroy(ac_object **self)
     *self=NULL;
 }
 
-char Player_collideEdge(vect2d pos,vect2d dir,ray2d* projection,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt,char col_flags)
+char Player_collideEdge(vect2d *pos,vect2d *dir,ray2d* projection,struct ac_object *self,ac_state** current,ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt,char col_flags)
 {
+    return 0;
     unsigned char i2;
-    unsigned char n=0;
+    unsigned char n=0,killflag=0;
     ray2d ret;
-    vect2d a,b,ea,eb;
+    vect2d p,pdir,ea,eb;
+    double s1,s2,sc;
     ret.dirscale.i=0;
     ret.dirscale.j=0;
     ret.pos.i=0;
@@ -253,9 +255,24 @@ char Player_collideEdge(vect2d pos,vect2d dir,ray2d* projection,struct ac_object
         ea.j=((player_data*)self->objdata)->cur[PlayerLinks[i2]+1];
         eb.i=((player_data*)self->objdata)->cur[PlayerLinks[i2+1]];
         eb.j=((player_data*)self->objdata)->cur[PlayerLinks[i2+1]+1];
-        sub2d(&pos,&ea,&a);
+        sub2d(&eb,&ea,&pdir);
+        sc=crossProductMagnitude(dir,&pdir);
+        sub2d(pos,&ea,&p);
+        s1=crossProductMagnitude(&p,&pdir)/sc;
+        if(s1>1||s1<=0)continue;
+        sub2d(&ea,pos,&p);
+        s2=crossProductMagnitude(&p,dir)/sc;
+        if(s2>1||s2<=0)continue;
+        p.i=-dir->i;
+        p.j=-dir->j;
+        scale2d(&p,s2,&p);
+        ret.pos.i+=9;
     }
-    return n;
+    projection->dirscale.i=ret.dirscale.i;
+    projection->dirscale.j=ret.dirscale.j;
+    projection->pos.i=ret.pos.i;
+    projection->pos.j=ret.pos.j;
+    return killflag?-n:n;
 }
 
 /*
