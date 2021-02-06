@@ -9,4 +9,6 @@ lib
 #Python graphers I used for analysing how fast the rigidbody system converged
 python
 #renderDoc configuration file
-.qrd
+*.qrd
+
+*.o

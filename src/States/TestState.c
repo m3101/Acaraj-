@@ -15,14 +15,30 @@
 #include "../objectlist.h"
 #include <stdio.h>
 
+#if AC_USE_TTS
+#include <espeak-ng/speak_lib.h>
+#endif
+
+#if AC_USE_TTS
+static int SynthIntro(void* arg)
+{
+    espeak_SetVoiceByName("fr");
+    espeak_Synth("En garde......Prêt......Allez!",500,0,0,0,0,NULL,NULL);
+    return 0;
+}
+#endif 
+
 ll* test_world=NULL;
 
 struct {} TestState_Vars={};
 void TestState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {
+    #if AC_USE_TTS
+    SDL_CreateThread(SynthIntro,"Synthetiser",NULL);
+    #endif
     printf("In test state.\n");
     ll_push(&test_world,Player(100,100,0,test_world));
-    /*playMusicFromMemory(deathsfolia,SDL_MIX_MAXVOLUME);*/
+    stopMusic();
 }
 void TestState_event(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags,SDL_Event* evt)
 {
@@ -42,7 +58,6 @@ void TestState_frame(struct ac_state** self,struct ac_state** next,SDL_Renderer*
 }
 void TestState_destroy()
 {
-    stopMusic();
     ll* curObj=test_world;
     for(;curObj!=NULL;curObj=curObj->next)
     {

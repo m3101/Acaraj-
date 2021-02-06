@@ -14,6 +14,18 @@
 #include "../Maths/Vect2d/Vect2d.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#if AC_USE_TTS
+#include <espeak-ng/speak_lib.h>
+#endif
+
+#if AC_USE_TTS
+static int LookingGood(void* arg)
+{
+    espeak_SetVoiceByName("en");
+    espeak_Synth("Great choice...... Looking good.",500,0,0,0,0,NULL,NULL);
+    return 0;
+}
+#endif 
 
 double Designer_dists[]={
     0,2,0,
@@ -111,8 +123,8 @@ void DesignerState_event(struct ac_state** self,struct ac_state** next,SDL_Rende
     {
         switch (evt->key.keysym.sym)
         {
-        case SDLK_t:
-            *next=&TestState;
+        case SDLK_q:
+            *next=&MenuState;
             break;
         case SDLK_0:
             DesignerState_save(0,renderer);
@@ -264,6 +276,9 @@ void DesignerState_destroy()
 {
     SDL_DestroyTexture(Designer_msg_txt);
     SDL_FreeSurface(Designer_msg_sur);
+    #if AC_USE_TTS
+    SDL_CreateThread(LookingGood,"Synthetiser",NULL);
+    #endif
 }
 
 ac_state DesignerState={

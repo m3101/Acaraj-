@@ -13,6 +13,7 @@
 #include "../PackedResources/resources.h"
 #include "../Audio/AudioSys.h"
 #include "../Audio/audiolist.h"
+#include "../../lib/Simple-SDL2-Audio/src/audio.h"
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@ SDL_Rect drect={
     .h=171
 };
 const int ox=320-100,oy=240-(171/2);
+
 void LoadState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* renderer,SDL_Window* window,char* ac_flags)
 {    
     printf("- Acarajé - A minimalist swordfighting game inspired by Nidhogg and Eggnogg\nCopyright (C) 2020 Amélia O. F. da S.\nDebug and test messages will be shown here.\n");
@@ -37,8 +39,7 @@ void LoadState_init(struct ac_state** self,struct ac_state** next,SDL_Renderer* 
     icon_s=IMG_Load_RW(SDL_RWFromConstMem(_binary_icon_png_start,_binary_icon_png_end-_binary_icon_png_start),1);
     icon=SDL_CreateTextureFromSurface(renderer,icon_s);
     //*ac_flags&=~02;
-
-    ac_play_audio(&intro);
+    playSoundFromMemory(intro,SDL_MIX_MAXVOLUME);
 
     tstart=system_current_time_millis();
     srand(*(unsigned int*)(&tstart+4));
@@ -55,7 +56,7 @@ void LoadState_frame(struct ac_state** self,struct ac_state** next,SDL_Renderer*
         SDL_RenderCopy(renderer,icon,NULL,&drect);
     }
     if(system_current_time_millis()-tstart>4500)
-        *next=&TestState;
+        *next=&MenuState;
 }
 void LoadState_destroy()
 {

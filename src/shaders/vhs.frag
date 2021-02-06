@@ -5,8 +5,8 @@ in vec2 texCoords;
 uniform sampler2D scrTex;
 uniform uint ticks;
 
-float fkx=.7,fky=.7;
-float finten=1.8;
+float fkx=.6,fky=.6;
+float finten=1.6;
 float cdist=.01;
 
 /*
@@ -52,7 +52,7 @@ vec3 kernel(float kernel[9],sampler2D tex,vec2 pos)
 }
 float bloomKernel[9]=float[](
     1.0,1.0,1.0,
-    1.0,0.0,1.0,
+    1.0,1.0,1.0,
     1.0,1.0,1.0
 );
 
@@ -90,9 +90,16 @@ void main()
         coordsi.x+=horizDeform(mod(time*i/100,1+sin(i-1)),coordsi.y,(i+2)*.005)*sin(tan(time*i*.01))*.005;
     }
     vec2 coords = vec2(coordsi.x,coordsi.y);
+    float analog_tv_reflectiondx=-.01,analog_tv_reflectionstr=.10;
+    float colArtif=.5;
+    float contrast=.9;
+    vec3 tv_reflection=texture(scrTex,coords+vec2(analog_tv_reflectiondx,0)).rgb;
     vec3 cola = bloom(scrTex,coords).rgb;
-    vec3 colb = bloom(scrTex,vec2(coords.x-coordsi.z,coords.y)).rgb;
-    vec3 colc = bloom(scrTex,vec2(coords.x+coordsi.z,coords.y)).rgb;
-    float contrast=1;
-    FragColor = vec4(vec3((colb.r-.5)*contrast+.5,(colc.g-.5)*contrast+.5,(cola.b-.5)*contrast+.5),1.0);
+    vec3 colb = bloom(scrTex,vec2(coords.x-coordsi.z*colArtif,coords.y)).rgb;
+    vec3 colc = bloom(scrTex,vec2(coords.x+coordsi.z*colArtif,coords.y)).rgb;
+    vec3 col=vec3((colb.r-.5)*contrast+.5,(colc.g-.5)*contrast+.5,(cola.b-.5)*contrast+.5);
+    tv_reflection-=.5;
+    tv_reflection*=contrast;
+    tv_reflection+=.5;
+    FragColor = vec4(col*(1-analog_tv_reflectionstr)+tv_reflection*analog_tv_reflectionstr,1.0);
 }

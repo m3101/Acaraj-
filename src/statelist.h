@@ -10,15 +10,18 @@
 #ifndef AC_STATELIST
 #define AC_STATELIST
 #include "states.h"
-ac_state TestState;
+extern ac_state TestState;
 
-ac_state LoadState;
+extern ac_state LoadState;
 
-ac_state DesignerState;
-double designer_0[20];
-double designer_1[20];
-double designer_2[20];
-double designer_3[20];
-double designer_4[20];
-double* designer_states[5];
+extern ac_state DesignerState;
+
+extern ac_state MenuState;
+
+extern double designer_0[20];
+extern double designer_1[20];
+extern double designer_2[20];
+extern double designer_3[20];
+extern double designer_4[20];
+extern double* designer_states[5];
 #endif

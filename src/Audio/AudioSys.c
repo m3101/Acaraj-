@@ -18,8 +18,13 @@ void ac_play_audio(ac_audio* audio)
 {
     if(audio->length==0)return;
     ll*cur=audio->sources;
-    unsigned char select=rand()%audio->length,i=0;
-    for(;i<select;i++)cur=cur->next;
+    unsigned char select,i=0;
+    do
+    {
+        select=rand()%audio->length;
+        for(;i<select;i++)cur=cur->next;
+    }
+    while(((Audio*)(cur->self))->playing);
     playSoundFromMemory(((Audio*)cur->self),SDL_MIX_MAXVOLUME);
 }
 /*

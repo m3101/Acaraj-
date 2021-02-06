@@ -9,5 +9,5 @@
 #ifndef AC_SHAREDFONTS
 #define AC_SHAREDFONTS
 #include <SDL2/SDL_ttf.h>
-TTF_Font* uni0553;
+extern TTF_Font* uni0553;
 #endif

@@ -17,7 +17,7 @@
 Player
 */
 /*x,y*/
-double playerDefault[20];
+extern double playerDefault[20];
 /*
 used stateflags:
 01->020  = Input flags (controls)
